@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodInsight | Restaurant Analytics</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, sans-serif;
+      background: #f4f7fb; color: #172033;
+    }
+    header {
+      background: #142b25; color: white;
+      padding: 22px 18px;
+    }
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; color: #c8ddd4; }
+    main { max-width: 1000px; margin: auto; padding: 18px; }
+    .cards {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+    .card, section {
+      background: white; padding: 18px;
+      border-radius: 14px; box-shadow: 0 3px 14px #1720330d;
+    }
+    .card span { color: #657184; font-size: 14px; }
+    .card h2 { margin: 10px 0 0; font-size: 25px; }
+    section { margin-bottom: 18px; }
+    h3 { margin-top: 0; }
+    label { display: block; margin: 12px 0 6px; }
+    input, select, button {
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: 1px solid #cbd5e1; font-size: 16px;
+    }
+    button {
+      background: #167653; color: white;
+      border: 0; margin-top: 14px; font-weight: bold;
+    }
+    .secondary { background: #203d33; }
+    .result { background: #eaf7ef; padding: 12px; border-radius: 8px; }
+    .muted { color: #657184; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 9px 4px; border-bottom: 1px solid #e5eaf0; text-align: left; }
+    footer { text-align: center; padding: 22px; color: #657184; }
+    @media (min-width: 650px) {
+      .cards { grid-template-columns: repeat(4, 1fr); }
+      .forms { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍽️ FoodInsight</h1>
+    <p>Restaurant Billing, Sales Analysis & Forecasting</p>
+  </header>
+
+  <main>
+    <h2>Restaurant Dashboard</h2>
+    <p class="muted">Your simple restaurant management demo</p>
+
+    <div class="cards">
+      <div class="card"><span>Total Sales</span><h2 id="sales">₹0</h2></div>
+      <div class="card"><span>Estimated Cost</span><h2 id="cost">₹0</h2></div>
+      <div class="card"><span>Estimated Profit</span><h2 id="profit">₹0</h2></div>
+      <div class="card"><span>Orders</span><h2 id="orders">0</h2></div>
+    </div>
+
+    <div class="forms">
+      <section>
+        <h3>Create Customer Bill</h3>
+        <label>Food item</label>
+        <select id="item">
+          <option value="Pizza|250|0.40">Pizza — ₹250</option>
+          <option value="Burger|120|0.35">Burger — ₹120</option>
+          <option value="Coffee|80|0.25">Coffee — ₹80</option>
+          <option value="Sandwich|150|0.35">Sandwich — ₹150</option>
+          <option value="Pasta|200|0.40">Pasta — ₹200</option>
+        </select>
+        <label>Quantity</label>
+        <input id="qty" type="number" min="1" step="1" value="1">
+        <button onclick="addOrder()">Calculate & Save Demo Bill</button>
+        <div id="bill" class="result" hidden></div>
+        <p class="muted">Demo only: orders are stored in this browser.</p>
+      </section>
+
+      <section>
+        <h3>Sales Forecast</h3>
+        <p>Estimate the next 3 days using your recent demo sales.</p>
+        <button class="secondary" onclick="forecast()">Predict Future Sales</button>
+        <div id="forecast" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <section>
+      <h3>Recent Orders</h3>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Item</th><th>Qty</th><th>Sales</th><th>Profit*</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="4">No orders yet</td></tr></tbody>
+        </table>
+      </div>
+      <p class="muted">*Profit is an estimate before tax, rent, salaries and other expenses.</p>
+      <button class="secondary" onclick="downloadCSV()">Download Sales CSV</button>
+    </section>
+  </main>
+
+  <footer>FoodInsight · Restaurant analytics demo</footer>
+
+  <script>
+    const key = "foodinsight_demo_orders";
+    let orders = [];
+    try { orders = JSON.parse(localStorage.getItem(key) || "[]"); }
+    catch (e) { orders = []; }
+
+    const money = n => "₹" + Number(n).toLocaleString("en-IN", {
+      maximumFractionDigits: 2
+    });
+
+    function render() {
+      const sales = orders.reduce((s, o) => s + o.sales, 0);
+      const cost = orders.reduce((s, o) => s + o.cost, 0);
+      document.getElementById("sales").textContent = money(sales);
+      document.getElementById("cost").textContent = money(cost);
+      document.getElementById("profit").textContent = money(sales - cost);
+      document.getElementById("orders").textContent = orders.length;
+      const rows = document.getElementById("rows");
+      rows.innerHTML = "";
+      if (!orders.length) {
+        rows.innerHTML = '<tr><td colspan="4">No orders yet</td></tr>';
+        return;
+      }
+      orders.slice().reverse().slice(0, 20).forEach(o => {
+        const tr = document.createElement("tr");
+        [o.item, o.qty, money(o.sales), money(o.sales - o.cost)]
+          .forEach(value => {
+            const td = document.createElement("td");
+            td.textContent = value;
+            tr.appendChild(td);
+          });
+        rows.appendChild(tr);
+      });
+    }
+
+    function addOrder() {
+      const [item, price, rate] = document.getElementById("item").value.split("|");
+      const qty = Number(document.getElementById("qty").value);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 1000) {
+        alert("Enter a whole quantity from 1 to 1000.");
+        return;
+      }
+      const sales = Number(price) * qty;
+      const cost = sales * Number(rate);
+      const order = {
+        item, qty, sales, cost, date: new Date().toISOString()
+      };
+      orders.push(order);
+      try { localStorage.setItem(key, JSON.stringify(orders)); }
+      catch (e) {
+        orders.pop();
+        alert("Could not save this order in browser storage.");
+        return;
+      }
+      render();
+      const bill = document.getElementById("bill");
+      bill.hidden = false;
+      bill.textContent = item + " × " + qty + " | Total: " + money(sales) +
+        " | Estimated profit: " + money(sales - cost);
+    }
+
+    function forecast() {
+      const out = document.getElementById("forecast");
+      if (orders.length < 3) {
+        out.textContent = "Add at least 3 demo orders before forecasting.";
+        return;
+      }
+      const values = orders.slice(-7).map(o => o.sales);
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      out.innerHTML = "";
+      for (let i = 1; i <= 3; i++) {
+        const p = document.createElement("p");
+        p.textContent = "Estimate " + i + ": " + money(avg);
+        out.appendChild(p);
+      }
+      const note = document.createElement("p");
+      note.className = "muted";
+      note.textContent = "Simple average, not an AI prediction. Actual sales may differ.";
+      out.appendChild(note);
+    }
+
+    function downloadCSV() {
+      const csv = [
+        ["Date", "Item", "Quantity", "Sales_INR", "Estimated_Cost_INR"],
+        ...orders.map(o => [o.date, o.item, o.qty, o.sales, o.cost])
+      ].map(row => row.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
+      const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FoodInsight-Sales.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    render();
+  </script>
+</body>
+  </html>
+  
