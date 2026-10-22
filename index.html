@@ -8,6 +8,120 @@
   <style>
     * { box-sizing: border-box; }
     body {
+/* FoodInsight professional design upgrade */
+body {
+  background: #f1f5f2;
+  color: #172b24;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background: linear-gradient(135deg, #123d2c, #197451);
+  padding: 28px 20px;
+  box-shadow: 0 5px 18px rgba(15, 60, 42, 0.15);
+}
+
+header h1 {
+  font-size: 30px;
+  letter-spacing: -0.5px;
+}
+
+header p {
+  line-height: 1.6;
+}
+
+main {
+  max-width: 1100px;
+  padding: 22px;
+}
+
+.card, section {
+  border: 1px solid #e0e9e2;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(26, 58, 42, 0.06);
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(26, 58, 42, 0.12);
+}
+
+.card span {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.card h2 {
+  color: #176b49;
+  font-size: 27px;
+}
+
+section h3 {
+  color: #174c36;
+  font-size: 19px;
+}
+
+input, select {
+  background: #fff;
+  border: 1px solid #d5e1d8;
+  border-radius: 10px;
+  min-height: 46px;
+}
+
+input:focus, select:focus {
+  outline: 2px solid #6fbd91;
+  border-color: #197451;
+}
+
+button {
+  background: #197451;
+  border-radius: 10px;
+  min-height: 46px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #12583b;
+}
+
+.secondary {
+  background: #244b3a;
+}
+
+table th {
+  background: #edf5ef;
+  color: #174c36;
+}
+
+table td, table th {
+  padding: 12px 8px;
+}
+
+footer {
+  border-top: 1px solid #e0e9e2;
+  margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 14px;
+  }
+
+  header h1 {
+    font-size: 25px;
+  }
+
+  .card, section {
+    padding: 14px;
+  }
+}
+      
       margin: 0; font-family: Arial, sans-serif;
       background: #f4f7fb; color: #172033;
     }
